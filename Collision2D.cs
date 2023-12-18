@@ -21,24 +21,27 @@ public class Collision2D : GameEntity, IUpdate, IDraw
 
     public int DrawLayer { get; set; } = 99;
     public Rectangle Rect;
+    public Vector2 Offset;
     // public List<CollisionDirection> Collisions = new();
     public bool IsColliding = false;
     public List<string> Layers = new();
     public List<string> LayerMasks = new();
+
+    public Vector2 RelativePos => ((Entity2D)Parent).Position + Offset;
     
     public void CheckCollision(Collision2D otherCollider, bool second = false)
     {
         if (second)
         {
             IsColliding = true;
-            OnCollision.Invoke(ref otherCollider);
+            OnCollision?.Invoke(ref otherCollider);
             return;
         }
         
         if (Raylib.CheckCollisionRecs(Rect, otherCollider.Rect))
         {
             IsColliding = true;
-            OnCollision.Invoke(ref otherCollider);
+            OnCollision?.Invoke(ref otherCollider);
             otherCollider.CheckCollision(this, true);
         }
     }
@@ -53,8 +56,8 @@ public class Collision2D : GameEntity, IUpdate, IDraw
         Parent.Match(
             Some: parent =>
             {
-                Rect.X = (parent as Entity2D).Position.X;
-                Rect.Y = (parent as Entity2D).Position.Y;
+                Rect.X = RelativePos.X;
+                Rect.Y = RelativePos.Y;
             },
             None: () =>
             {

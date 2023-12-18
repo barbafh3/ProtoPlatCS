@@ -31,7 +31,8 @@ class Program
         player.DrawLayer = 1;
         player.Collision = EntityManager.NewEntity<Collision2D>();
         player.Collision.Parent = player;
-        player.Collision.Rect = new(100, 100, 48, 48);
+        player.Collision.Rect = new(100, 100, 28, 30);
+        player.Collision.Offset = new(10, 12);
 
         var ground = EntityManager.NewEntity<ColorPlatform>();
         ground.Position = new(0, 600);
