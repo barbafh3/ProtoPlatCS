@@ -1,0 +1,35 @@
+[window]
+Title = "ProtoPlat"
+Width = 1280
+Height = 720
+TargetFPS = 60
+
+[[input.actions]]
+Name = "MoveLeft"
+KeyboardKeys = [65, 263] # KEY_A, KEY_LEFT
+MouseButtons = []
+MultiKey = false
+
+[[input.actions]]
+Name = "MoveRight"
+KeyboardKeys = [68, 262] # KEY_D, KEY_RIGHT
+MouseButtons = []
+MultiKey = false
+
+[[input.actions]]
+Name = "ToggleDrawCollision"
+KeyboardKeys = [299] # KEY_F10
+MouseButtons = []
+MultiKey = false
+
+[[input.actions]]
+Name = "InteractUI"
+KeyboardKeys = []
+MouseButtons = [0] # MOUSE_BUTTON_LEFT
+MultiKey = false
+
+[[input.actions]]
+Name = "Jump"
+KeyboardKeys = [32] # KEY_SPACE
+MouseButtons = []
+MultiKey = false

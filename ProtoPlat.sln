@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game", "Game\Game.csproj", "{C1983446-7483-4933-A737-F4205E3AA5AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageToCode", "ImageToCode\ImageToCode.csproj", "{9C93DAAF-4CF8-4DC0-9C12-F3A36977AB4D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C1983446-7483-4933-A737-F4205E3AA5AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1983446-7483-4933-A737-F4205E3AA5AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1983446-7483-4933-A737-F4205E3AA5AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1983446-7483-4933-A737-F4205E3AA5AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C93DAAF-4CF8-4DC0-9C12-F3A36977AB4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C93DAAF-4CF8-4DC0-9C12-F3A36977AB4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C93DAAF-4CF8-4DC0-9C12-F3A36977AB4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C93DAAF-4CF8-4DC0-9C12-F3A36977AB4D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

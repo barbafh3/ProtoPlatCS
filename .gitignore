@@ -1,3 +1,5 @@
-bin/
-obj/
+Game/bin/
+Game/obj/
+ImageToCode/bin/
+ImageToCode/obj/
 .idea/

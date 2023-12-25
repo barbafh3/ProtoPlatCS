@@ -1,0 +1,112 @@
+﻿using System.Numerics;
+using ProtoPlat.Managers;
+using Raylib_cs;
+
+namespace ProtoPlat;
+
+class Program
+{
+    public static void Main()
+    {
+        GameManager.LoadGameConfig();
+
+        Raylib.InitWindow(
+            Int32.Parse(GameManager.WindowConfig["Width"].ToString() ?? throw new InvalidOperationException()),
+            Int32.Parse(GameManager.WindowConfig["Height"].ToString() ?? throw new InvalidOperationException()),
+            GameManager.WindowConfig["Title"].ToString()
+            );
+        Raylib.SetTargetFPS(
+            Int32.Parse(GameManager.WindowConfig["TargetFPS"].ToString() ?? throw new InvalidOperationException())
+            );
+
+        var phAtlasList = new Dictionary<string, Texture2D>();
+        unsafe
+        {
+            var phIdle = new PHIdle();
+            fixed (byte* bptr = phIdle.Data)
+            {
+                var image = new Image
+                {
+                    Data = bptr,
+                    Width = phIdle.Width,
+                    Height = phIdle.Height,
+                    Mipmaps = 1,
+                    Format = (PixelFormat)phIdle.Format
+                };
+            
+                var texture = Raylib.LoadTextureFromImage(image);
+                phAtlasList.Add("PHCharacterIdle", texture);
+            }
+            
+            var phRun = new PHRun();
+            fixed (byte* bptr = phRun.Data)
+            {
+                var image = new Image
+                {
+                    Data = bptr,
+                    Width = phRun.Width,
+                    Height = phRun.Height,
+                    Mipmaps = 1,
+                    Format = (PixelFormat)phRun.Format
+                };
+            
+                var texture = Raylib.LoadTextureFromImage(image);
+                phAtlasList.Add("PHCharacterRun", texture);
+            }
+            
+            var phJump = new PHJump();
+            fixed (byte* bptr = phJump.Data)
+            {
+                var image = new Image
+                {
+                    Data = bptr,
+                    Width = phJump.Width,
+                    Height = phJump.Height,
+                    Mipmaps = 1,
+                    Format = (PixelFormat)phJump.Format
+                };
+            
+                var texture = Raylib.LoadTextureFromImage(image);
+                phAtlasList.Add("PHCharacterJump", texture);
+            }
+        }
+
+        var oakAtlasList = new Dictionary<string, string>()
+        {
+            {"OakWoodsBG1", "Assets/tileset/background/background_layer_1.png"},
+            {"OakWoodsBG2", "Assets/tileset/background/background_layer_2.png"},
+            {"OakWoodsBG3", "Assets/tileset/background/background_layer_3.png"},
+        };
+
+        AssetManager.LoadAtlasList(phAtlasList);
+        AssetManager.LoadAtlasList(oakAtlasList);
+
+        GameStartup.Execute();
+        
+        while (!Raylib.WindowShouldClose())
+        {
+            // Input phase
+            InputManager.HandleInput();
+            
+            // Update phase
+            EntityManager.UpdateGameEntities();
+            
+            // FixedUpdate phase
+            EntityManager.FixedUpdateGameEntities();
+            
+            // Draw phase
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.DARKGREEN);
+            
+            if (InputManager.IsInputActionPressed("ToggleDrawCollision"))
+                GameManager.DrawCollisionEnabled = !GameManager.DrawCollisionEnabled;
+
+            EntityManager.DrawGameEntities();
+            
+            Raylib.DrawFPS(10, 10);
+            Raylib.EndDrawing();
+        }
+
+        Raylib.CloseWindow();
+    }
+}
