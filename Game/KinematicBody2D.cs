@@ -7,12 +7,15 @@ using Raylib_cs;
 
 namespace ProtoPlat;
 
+
 public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
 {
     public Vector2 Velocity = Vector2.Zero;
     public Collider2D Collider;
 
     protected int _fallCount = 0;
+
+    public bool FacingRight = true;
 
     public KinematicBody2D(Collider2D collider, string name = "KinematicBody2D") : base(name)
     {
@@ -45,7 +48,6 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
     public virtual void Update(float delta)
     {
         Collider.IsColliding = false;
-        Collider.CollisionDirections = new();
         
         if(!Collider.CollisionDirections.ContainsValue(CollisionDirection.FromBelow))
             Velocity.Y += Math.Min(1, (_fallCount / Constants.FPS) * Constants.Gravity);
@@ -67,33 +69,13 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
 
     public void MoveBody()
     {
-        var collided = false;
-        Raylib.DrawLineV(Collider.Rect.Center(), Collider.Rect.Center() + new Vector2(50, 0), Color.BLACK);
-        EntityManager.GetEntities<Collider2D>().ForEach(collider =>
-        {
-            if (!collided && collider != Collider)
-            {
-                // var distance = 50f;
-                var origin = Collider.Rect.Center();
-                var mousePos = Raylib.GetMousePosition();
-                // var dir = new Vector2(50, 0);
-                var dir = mousePos - origin;
-                var box = new BoundingBox
-                {
-                    Min = new Vector3(collider.Rect.X, collider.Rect.Y, 0),
-                    Max = new Vector3(collider.Rect.Right(), collider.Rect.Bottom(), 0)
-                };
-                var ray = new Ray
-                {
-                    Position = origin.ToVector3(),
-                    Direction = dir.ToVector3()
-                };
-                var result = Raylib.GetRayCollisionBox(ray, box);
-                Raylib.DrawCircleV(result.Point.ToVector2(), 5, Color.RED);
-                collided = true;
-            }
-        });
-        
+        // Raycast Right
+        CheckRayCollision(Collider.Rect.Center(), new(20, 0));
+        // Raycast Left
+        CheckRayCollision(Collider.Rect.Center(), new(-20, 0));
+        // Raycast Bottom
+        CheckRayCollision(Collider.Rect.Center(), new(0, 30));
+
         Position += Velocity;
         RepositionChildren();
         
@@ -107,6 +89,47 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
         });
     }
 
+    private void CheckRayCollision(Vector2 origin, Vector2 direction)
+    {
+        var collisionResults = new List<RayCollision>();
+        var distance = origin.Distance(origin + direction);
+        EntityManager.GetEntities<Collider2D>().ForEach(collider =>
+        {
+            if (collider != Collider)
+            {
+                var ray = new Ray
+                {
+                    Position = origin.ToVector3(),
+                    Direction = direction.ToVector3()
+                };
+                var result = Raylib.GetRayCollisionBox(ray, collider.Rect.ToBoundingBox());
+                collisionResults.Add(result);
+            }
+        });
+
+        var nearestDistance = float.MaxValue;
+        var nearestPoint = Vector2.Zero;
+        var nearestNormal = Vector2.Zero;
+        foreach (var result in collisionResults)
+        {
+            var dist = origin.Distance(result.Point.ToVector2());
+            if (dist < nearestDistance)
+            {
+                nearestDistance = dist;
+                nearestPoint = result.Point.ToVector2();
+                nearestNormal = result.Normal.ToVector2().Normalized();
+            }
+        }
+
+        if (nearestDistance < distance)
+        {
+            Raylib.DrawCircleV(nearestPoint, 5, Color.RED);
+            var newNormal = new Vector2(15, 15) * nearestNormal;
+            var lineEnd = nearestPoint.Plus(newNormal);
+            Raylib.DrawLineV(nearestPoint, lineEnd, Color.YELLOW);
+        }
+    }
+
 
     protected bool CheckCollisionDirection(Collider2D otherCollider)
     {
@@ -114,28 +137,42 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
         var topCollision = Collider.Rect.Bottom() - otherCollider.Rect.Y;
         var leftCollision = Collider.Rect.Right() - otherCollider.Rect.X;
         var rightCollision = otherCollider.Rect.Right() - Collider.Rect.X;
-        
+
+        var notColliding = new List<CollisionDirection>();
         
         if (topCollision < bottomCollision && topCollision < leftCollision && topCollision < rightCollision )
         {                           
             Collider.CollisionDirections.Add(otherCollider, CollisionDirection.FromBelow);
             return true;
         }
+        notColliding.Add(CollisionDirection.FromBelow);
+        
         if (bottomCollision < topCollision && bottomCollision < leftCollision && bottomCollision < rightCollision)                        
         {
             Collider.CollisionDirections.Add(otherCollider, CollisionDirection.FromAbove);
             return true;
         }
+        notColliding.Add(CollisionDirection.FromAbove);
+        
         if (leftCollision < rightCollision && leftCollision < topCollision && leftCollision < bottomCollision)
         {
             Collider.CollisionDirections.Add(otherCollider, CollisionDirection.FromRight);
             return true;
         }
+        notColliding.Add(CollisionDirection.FromRight);
+        
         if (rightCollision < leftCollision && rightCollision < topCollision && rightCollision < bottomCollision )
         {
             Collider.CollisionDirections.Add(otherCollider, CollisionDirection.FromLeft);
             return true;
         }
+        notColliding.Add(CollisionDirection.FromLeft);
+        
+        Collider
+            .CollisionDirections
+            .Where(kv => kv.Key == otherCollider && notColliding.Contains(kv.Value))
+            .ToList()
+            .ForEach(kv => Collider.CollisionDirections.Remove(kv.Key));
 
         return false;
     }

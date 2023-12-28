@@ -33,12 +33,14 @@ public class Player : KinematicBody2D
         {
             Velocity.X += -1 * Speed * delta;
             AnimatedSprite.Flip.Item1 = true;
+            FacingRight = false;
         }
 
         if (InputManager.GetInputActionState("MoveRight") == InputState.Down)
         {
             Velocity.X += Speed * delta;
             AnimatedSprite.Flip.Item1 = false;
+            FacingRight = true;
         }
 
         if (InputManager.GetInputActionState("Jump") == InputState.Pressed)

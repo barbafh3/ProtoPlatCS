@@ -97,7 +97,7 @@ class Program
             
             // Draw phase
             Raylib.BeginDrawing();
-            Raylib.ClearBackground(Color.DARKGREEN);
+            Raylib.ClearBackground(Color.GRAY);
 
             if (InputManager.IsInputActionPressed("ToggleDrawCollision"))
                 GameManager.DrawCollisionEnabled = !GameManager.DrawCollisionEnabled;
