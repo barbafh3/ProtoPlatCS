@@ -1,7 +1,7 @@
+using System.ComponentModel;
 using System.Numerics;
+using ExtensionMethods;
 using ProtoPlat.Interfaces;
-using LanguageExt;
-using Microsoft.VisualBasic;
 using ProtoPlat.Managers;
 using Raylib_cs;
 
@@ -11,6 +11,8 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
 {
     public Vector2 Velocity = Vector2.Zero;
     public Collider2D Collider;
+
+    protected int _fallCount = 0;
 
     public KinematicBody2D(Collider2D collider, string name = "KinematicBody2D") : base(name)
     {
@@ -44,6 +46,9 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
     {
         Collider.IsColliding = false;
         Collider.CollisionDirections = new();
+        
+        if(!Collider.CollisionDirections.ContainsValue(CollisionDirection.FromBelow))
+            Velocity.Y += Math.Min(1, (_fallCount / Constants.FPS) * Constants.Gravity);
     }
 
     public virtual void FixedUpdate(float delta)
@@ -52,6 +57,8 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
 
     protected override void RepositionChildren()
     {
+        _fallCount++;
+        
         base.RepositionChildren();
 
         Collider.Rect.X = Position.X + Collider.Offset.X;
@@ -60,8 +67,36 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
 
     public void MoveBody()
     {
+        var collided = false;
+        Raylib.DrawLineV(Collider.Rect.Center(), Collider.Rect.Center() + new Vector2(50, 0), Color.BLACK);
+        EntityManager.GetEntities<Collider2D>().ForEach(collider =>
+        {
+            if (!collided && collider != Collider)
+            {
+                // var distance = 50f;
+                var origin = Collider.Rect.Center();
+                var mousePos = Raylib.GetMousePosition();
+                // var dir = new Vector2(50, 0);
+                var dir = mousePos - origin;
+                var box = new BoundingBox
+                {
+                    Min = new Vector3(collider.Rect.X, collider.Rect.Y, 0),
+                    Max = new Vector3(collider.Rect.Right(), collider.Rect.Bottom(), 0)
+                };
+                var ray = new Ray
+                {
+                    Position = origin.ToVector3(),
+                    Direction = dir.ToVector3()
+                };
+                var result = Raylib.GetRayCollisionBox(ray, box);
+                Raylib.DrawCircleV(result.Point.ToVector2(), 5, Color.RED);
+                collided = true;
+            }
+        });
+        
         Position += Velocity;
         RepositionChildren();
+        
         EntityManager.CheckCollision(Collider).ForEach(otherCollider =>
         {
             if (CheckCollisionDirection(otherCollider))
@@ -75,10 +110,10 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
 
     protected bool CheckCollisionDirection(Collider2D otherCollider)
     {
-        var bottomCollision = otherCollider.Bottom - Collider.Rect.Y;
-        var topCollision = Collider.Bottom - otherCollider.Rect.Y;
-        var leftCollision = Collider.Right - otherCollider.Rect.X;
-        var rightCollision = otherCollider.Right - Collider.Rect.X;
+        var bottomCollision = otherCollider.Rect.Bottom() - Collider.Rect.Y;
+        var topCollision = Collider.Rect.Bottom() - otherCollider.Rect.Y;
+        var leftCollision = Collider.Rect.Right() - otherCollider.Rect.X;
+        var rightCollision = otherCollider.Rect.Right() - Collider.Rect.X;
         
         
         if (topCollision < bottomCollision && topCollision < leftCollision && topCollision < rightCollision )

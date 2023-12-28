@@ -76,6 +76,7 @@ class Program
             {"OakWoodsBG1", "Assets/tileset/background/background_layer_1.png"},
             {"OakWoodsBG2", "Assets/tileset/background/background_layer_2.png"},
             {"OakWoodsBG3", "Assets/tileset/background/background_layer_3.png"},
+            {"OakWoodsTileSet", "Assets/tileset/oak_woods_tileset.png"},
         };
 
         AssetManager.LoadAtlasList(phAtlasList);
@@ -97,9 +98,11 @@ class Program
             // Draw phase
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.DARKGREEN);
-            
+
             if (InputManager.IsInputActionPressed("ToggleDrawCollision"))
                 GameManager.DrawCollisionEnabled = !GameManager.DrawCollisionEnabled;
+            
+            
 
             EntityManager.DrawGameEntities();
             

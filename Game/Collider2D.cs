@@ -1,4 +1,5 @@
 using System.Numerics;
+using ExtensionMethods;
 using LanguageExt.ClassInstances.Pred;
 using ProtoPlat.Interfaces;
 using ProtoPlat.Managers;
@@ -24,6 +25,7 @@ public class Collider2D : GameEntity, IUpdate, IDraw
     
     public new Entity2D Parent;
 
+    public bool Enabled = true;
     public int DrawLayer { get; set; } = 99;
     public Rectangle Rect;
     public Vector2 Offset;
@@ -31,11 +33,6 @@ public class Collider2D : GameEntity, IUpdate, IDraw
     public List<string> Layers = new();
     public List<string> LayerMasks = new();
     public Dictionary<Collider2D, CollisionDirection> CollisionDirections = new();
-
-    public float Top => Rect.Y;
-    public float Bottom => Rect.Y + Rect.Height;
-    public float Left => Rect.X;
-    public float Right => Rect.X + Rect.Width;
 
     public Collider2D(Rectangle rect, Vector2 offset, string name = "Collider2D") : base(name)
     {
@@ -47,13 +44,8 @@ public class Collider2D : GameEntity, IUpdate, IDraw
     
     public void Draw()
     {
-        if (GameManager.DrawCollisionEnabled && CollisionDirections.Count != 0)
-        {
-            if (CollisionDirections.Values.Contains(CollisionDirection.FromAbove) || CollisionDirections.Values.Contains(CollisionDirection.FromBelow))
-                Raylib.DrawRectangleRec(Rect, new Color(255, 0, 0, 170));
-            else
-                Raylib.DrawRectangleRec(Rect, new Color(0, 0, 255, 170));
-        }
+        if (GameManager.DrawCollisionEnabled)
+            Raylib.DrawRectangleRec(Rect, new Color(255, 0, 0, 170));
     }
 
     public void Update(float delta)

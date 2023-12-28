@@ -14,8 +14,6 @@ public class Player : KinematicBody2D
 
     public float JumpForce { get; private set; } = -40f;
 
-    private int _fallCount = 0;
-    
     public Player(Collider2D collider) : base(collider) { }
 
     public Player(Collider2D collider, AnimatedSprite2D animatedSprite, float speed, Vector2 position) : base(collider, position)
@@ -46,19 +44,7 @@ public class Player : KinematicBody2D
         if (InputManager.GetInputActionState("Jump") == InputState.Pressed)
             Velocity.Y = Constants.Gravity * JumpForce;
 
-        if(!Collider.IsColliding)
-            Velocity.Y += Math.Min(1, (_fallCount / Constants.FPS) * Constants.Gravity);
-        
-
-        _fallCount++;
-
         MoveBody();
-        
-        // if(Collider.CollisionDirections.Values.Contains(CollisionDirection.FromBelow))
-        //     GameLogger.Log(LogLevel.INFO, "Collision from bottom");
-        // if(Collider.CollisionDirections.Values.Contains(CollisionDirection.FromLeft) || Collider.CollisionDirections.Values.Contains(CollisionDirection.FromRight))
-        //     GameLogger.Log(LogLevel.INFO, "Collision from side");
-        // GameLogger.Log(LogLevel.INFO, "--------------");
         
         if (Velocity.Y > 0 
             && AnimatedSprite.Animation.Name != "Fall" 

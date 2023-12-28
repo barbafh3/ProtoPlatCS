@@ -53,9 +53,28 @@ public static class GameStartup
         ground2.Color = Color.DARKBLUE;
         ground2.Collider = new Collider2D(g2rect, Vector2.Zero);
         ground2.Collider.Parent = ground2;
+        
+        var ground3 = EntityManager.NewEntity<ColorPlatform>();
+        ground3.Position = new(700, 400);
+        var g3rect = new Rectangle
+        {
+            X = ground3.Position.X,
+            Y = ground3.Position.Y,
+            Width = 500,
+            Height = 48
+        };
+        ground3.Rect = g3rect;
+        ground3.Color = Color.DARKBLUE;
+        ground3.Collider = new Collider2D(g3rect, Vector2.Zero);
+        ground3.Collider.Parent = ground3;
 
-        var bg1 = new Sprite2D("OakWoodsBG1", 4, -3);
-        var bg2 = new Sprite2D("OakWoodsBG2", 4, -2);
-        var bg3 = new Sprite2D("OakWoodsBG3", 4, -1);
+        // var bg1 = new Sprite2D("OakWoodsBG1", 4, -10);
+        // var bg2 = new Sprite2D("OakWoodsBG2", 4, -9);
+        // var bg3 = new Sprite2D("OakWoodsBG3", 4, -8);
+
+        // var tilemap = EntityManager.NewEntity<TileMap>();
+        // tilemap.CreateTileMap("OakWoodsTileSet", "Assets/tilemaps/tilemap1.json", 2f);
+        // tilemap.DrawLayer = -5;
+
     }
 }

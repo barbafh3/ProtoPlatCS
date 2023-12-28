@@ -20,6 +20,20 @@ public static class EntityManager
         return entity;
     }
 
+    public static List<T> GetEntities<T>() where T : GameEntity
+    {
+        var list = new List<T>();
+
+        foreach (var entity in _entities)
+            if (entity is T gameEntity)
+            {
+                list.Add(gameEntity);
+            }
+
+        return list;
+    }
+   
+
     public static List<Collider2D> CheckCollision(Collider2D collider1)
     {
         var list = new List<Collider2D>();
