@@ -46,23 +46,18 @@ public class Collider2D : GameEntity, IUpdate, IDraw
     {
         if (GameManager.DrawCollisionEnabled)
         {
-            Raylib.DrawBoundingBox(
-                Box,
-                CollisionDirections.Count > 0 ? new Color(255, 0, 0, 170) : new Color(0, 0, 255, 170)
-                );
+            VisualDebugger.QueuDebugItem(
+                DebugType.BoundingBox, 
+                new {
+                    box = Box,
+                    color = CollisionDirections.Count > 0 ? new Color(255, 0, 0, 170) : new Color(0, 0, 255, 170)
+                });
         }
     }
 
     public void Update(float delta)
     {
         CollisionDirections = new();
-    }
-
-    public void AddDirection(Collider2D collider, CollisionDirection direction)
-    {
-        if (Static)
-            GameLogger.Log(LogLevel.INFO, "Changing collision on static");
-        CollisionDirections.Add(collider, direction);
     }
 
     public Option<Collider2D> CheckRayCollision(Vector2 origin, Vector2 direction)
@@ -96,23 +91,23 @@ public class Collider2D : GameEntity, IUpdate, IDraw
                 }
             }
         });
-        
-        nearestCollider.IfSome(col => col.AddDirection(this, CollisionDirection.FromAbove));
 
         if (GameManager.DrawCollisionEnabled)
         {
             nearestPoint.IfSome(
                 point =>
                 {
-                    Raylib.DrawCircleV(point, 3, Color.RED);
+                    VisualDebugger.QueuDebugItem(DebugType.Circle, new {position = point, radius = 3, color = Color.RED});
                     nearestNormal.IfSome(
                         normal =>
                         {
                             var endPos = point + (new Vector2(15, 15) * normal);
-                            Raylib.DrawLineV(point, endPos, Color.YELLOW);
+                            VisualDebugger.QueuDebugItem(DebugType.LineV, new {start = point, end = endPos, color = Color.YELLOW});
                         });
                 });
         }
+        
+        nearestCollider.IfSome(col => col.CollisionDirections.Add(this, CollisionDirection.FromAbove));
 
         return nearestCollider;
     }

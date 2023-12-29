@@ -86,6 +86,9 @@ class Program
         
         while (!Raylib.WindowShouldClose())
         {
+            // Clearing debug items from last frame
+            VisualDebugger.ClearDebugItems();
+            
             // Input phase
             InputManager.HandleInput();
             
@@ -105,6 +108,9 @@ class Program
             
 
             EntityManager.DrawGameEntities();
+            
+            // Draw debug itens before UI and after ingame stuff
+            VisualDebugger.DrawDebugItems();
             
             Raylib.DrawFPS(10, 10);
             Raylib.EndDrawing();

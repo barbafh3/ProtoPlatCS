@@ -102,14 +102,11 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
         Collider.CheckRayCollision(Collider.Box.Center().ToVector2(), new(0, -30))
             .IfSome(collider =>
             {
-                GameLogger.Log(LogLevel.INFO, $"Collided with {collider.Parent.Name}");     
                 Collider.CollisionDirections.TryAdd(collider, CollisionDirection.FromAbove);
                 RevertMovement(collider);
                 RepositionChildren();
             });
         
-        GameLogger.Log(LogLevel.INFO, "End move");
-        GameLogger.Log(LogLevel.INFO, "--- move");
         // EntityManager.GetEntities<Collider2D>().ForEach(collider =>
         // {
         //     if (Collider.CheckCollision(collider))

@@ -18,8 +18,10 @@ public class JsonTile
 public class JsonTileMap
 {
     public string TileSet { get; set; }
+    public float TileSetScale { get; set; }
     public Vector2 MapSizePx { get; set; }
     public Vector2 TileSize { get; set; }
+    public Vector2 SpriteSize { get; set; }
     public List<JsonTile> Tiles { get; set; }
 }
 
@@ -45,47 +47,26 @@ public class Tile : Entity2D
         Collider = new Collider2D(new BoundingBox
             {
                 Min = Position.ToVector3(),
-                Max = Position.ToVector3() + AtlasCoords.Size().ToVector3()
+                Max = Position.ToVector3() + Tilemap.MapData.TileSize.ToVector3()
             }, 
             Vector2.Zero);
         Collider.Parent = this;
         Collider.Static = true;
     }
 
-    public static Option<Tile> CreateTile(TileMap map, Vector2 coords, Vector2 atlasCoords, float spriteScale)
-    {
-        var tileSize = map.MapData.TileSize;
-        Option<JsonTile> jsonTile = map.MapData.Tiles.Find(tile => tile.Coords == coords * tileSize);
-
-        if (jsonTile.IsSome)
-        {
-            var tileData = jsonTile.ValueUnsafe();
-            var rect = new Rectangle
-            {
-                X = tileData.AtlasCoords.X,
-                Y = tileData.AtlasCoords.Y,
-                Width = tileSize.X * spriteScale,
-                Height = tileSize.Y * spriteScale
-            };
-            var tile = new Tile(map, coords, rect, spriteScale);
-            return tile;
-        };
-
-        return None;
-    }
-
-
     public void DrawTile()
     {
         var src = AtlasCoords;
-        src.X *= Tilemap.MapData.TileSize.X;
-        src.Y *= Tilemap.MapData.TileSize.Y;
+        src.X *= Tilemap.MapData.SpriteSize.X;
+        src.Y *= Tilemap.MapData.SpriteSize.Y;
+        src.Width = Tilemap.MapData.SpriteSize.X;
+        src.Height = Tilemap.MapData.SpriteSize.Y;
         var dest = new Rectangle
         {
             X = Position.X,
             Y = Position.Y,
-            Width = AtlasCoords.Width,
-            Height = AtlasCoords.Height 
+            Width = Tilemap.MapData.TileSize.X,
+            Height = Tilemap.MapData.TileSize.Y
         };
         AssetManager
             .GetTextureAtlas(Tilemap.AtlasName)
@@ -128,14 +109,6 @@ public class Chunk
                 Tiles.Add(new Tile(map, tile.Coords, rect, spriteScale));
             }
         }
-
-        // for (int x = (int)worldStart.X; x < (int)worldEnd.X; x++)
-        // {
-        //     for (int y = (int)worldStart.Y; y < (int)worldEnd.X; y++)
-        //     {
-        //         Tile.CreateTile(map, new Vector2(x, y), spriteScale).IfSome(Tiles.Add);
-        //     }
-        // }
     }
 
     public void DrawChunk()
@@ -153,10 +126,10 @@ public class TileMap : Entity2D, IDraw
     
     public TileMap() : base("TileMap") {}
 
-    public void CreateTileMap(string atlasName, string mapPath, float spriteScale)
+    public void CreateTileMap(string mapPath)
     {
-        AtlasName = atlasName;
         MapData = Utils.LoadTileMapJson(mapPath);
+        AtlasName = MapData.TileSet;
         var mapTileCount = new Vector2(
             (float)Math.Ceiling(MapData.MapSizePx.X / MapData.TileSize.X),
             (float)Math.Ceiling(MapData.MapSizePx.Y / MapData.TileSize.Y));
@@ -175,7 +148,7 @@ public class TileMap : Entity2D, IDraw
 
         foreach (var chunkCoords in chunkCoordList)
         {
-            Chunks.Add(new Chunk(this, chunkCoords, spriteScale));
+            Chunks.Add(new Chunk(this, chunkCoords, MapData.TileSetScale));
         }
     }
     

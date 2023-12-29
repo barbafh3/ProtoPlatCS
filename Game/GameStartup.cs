@@ -86,12 +86,12 @@ public static class GameStartup
         // ground4.Collider.Name = "Collider4";
         // ground4.Collider.Parent = ground4;
 
-        // var bg1 = new Sprite2D("OakWoodsBG1", 4, -10);
-        // var bg2 = new Sprite2D("OakWoodsBG2", 4, -9);
-        // var bg3 = new Sprite2D("OakWoodsBG3", 4, -8);
+        var bg1 = new Sprite2D("OakWoodsBG1", 4, -10);
+        var bg2 = new Sprite2D("OakWoodsBG2", 4, -9);
+        var bg3 = new Sprite2D("OakWoodsBG3", 4, -8);
 
         var tilemap = EntityManager.NewEntity<TileMap>();
-        tilemap.CreateTileMap("OakWoodsTileSet", "Assets/tilemaps/tilemap1.json", 2f);
+        tilemap.CreateTileMap("Assets/tilemaps/tilemap1.json");
         tilemap.DrawLayer = -5;
 
     }
