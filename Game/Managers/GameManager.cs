@@ -9,7 +9,7 @@ public static class GameManager
 {
     private static HashMap<string, object> _config;
 
-    public static bool DrawCollisionEnabled = false;
+    public static bool DrawCollisionEnabled = true;
     
     public static TomlTable WindowConfig { get; private set; }
     

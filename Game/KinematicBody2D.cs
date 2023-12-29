@@ -1,9 +1,11 @@
-using System.ComponentModel;
 using System.Numerics;
 using ExtensionMethods;
 using ProtoPlat.Interfaces;
 using ProtoPlat.Managers;
 using Raylib_cs;
+using LanguageExt;
+using LanguageExt.UnsafeValueAccess;
+using static LanguageExt.Prelude;
 
 namespace ProtoPlat;
 
@@ -47,8 +49,6 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
 
     public virtual void Update(float delta)
     {
-        Collider.IsColliding = false;
-        
         if(!Collider.CollisionDirections.ContainsValue(CollisionDirection.FromBelow))
             Velocity.Y += Math.Min(1, (_fallCount / Constants.FPS) * Constants.Gravity);
     }
@@ -63,107 +63,100 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
         
         base.RepositionChildren();
 
-        Collider.Rect.X = Position.X + Collider.Offset.X;
-        Collider.Rect.Y = Position.Y + Collider.Offset.Y;
+        var colliderSize = Collider.Box.Max - Collider.Box.Min;
+        Collider.Box.Min.X = Position.X + Collider.Offset.X;
+        Collider.Box.Min.Y = Position.Y + Collider.Offset.Y;
+        Collider.Box.Max = Collider.Box.Min + colliderSize;
     }
 
     public void MoveBody()
     {
-        // Raycast Right
-        CheckRayCollision(Collider.Rect.Center(), new(20, 0));
-        // Raycast Left
-        CheckRayCollision(Collider.Rect.Center(), new(-20, 0));
-        // Raycast Bottom
-        CheckRayCollision(Collider.Rect.Center(), new(0, 30));
-
         Position += Velocity;
         RepositionChildren();
         
-        EntityManager.CheckCollision(Collider).ForEach(otherCollider =>
-        {
-            if (CheckCollisionDirection(otherCollider))
+        // Raycast Right
+        Collider.CheckRayCollision(Collider.Box.Center().ToVector2(), new(20, 0))
+            .IfSome(collider =>
             {
-                RevertMovement(otherCollider);
+                Collider.CollisionDirections.TryAdd(collider, CollisionDirection.FromRight);
+                RevertMovement(collider);
                 RepositionChildren();
-            }
-        });
-    }
-
-    private void CheckRayCollision(Vector2 origin, Vector2 direction)
-    {
-        var collisionResults = new List<RayCollision>();
-        var distance = origin.Distance(origin + direction);
-        EntityManager.GetEntities<Collider2D>().ForEach(collider =>
-        {
-            if (collider != Collider)
+            });
+        // Raycast Left
+        Collider.CheckRayCollision(Collider.Box.Center().ToVector2(), new(-20, 0))
+            .IfSome(collider =>
             {
-                var ray = new Ray
-                {
-                    Position = origin.ToVector3(),
-                    Direction = direction.ToVector3()
-                };
-                var result = Raylib.GetRayCollisionBox(ray, collider.Rect.ToBoundingBox());
-                collisionResults.Add(result);
-            }
-        });
-
-        var nearestDistance = float.MaxValue;
-        var nearestPoint = Vector2.Zero;
-        var nearestNormal = Vector2.Zero;
-        foreach (var result in collisionResults)
-        {
-            var dist = origin.Distance(result.Point.ToVector2());
-            if (dist < nearestDistance)
+                Collider.CollisionDirections.TryAdd(collider, CollisionDirection.FromLeft);
+                RevertMovement(collider);
+                RepositionChildren();
+            });
+        // Raycast Bottom
+        Collider.CheckRayCollision(Collider.Box.Center().ToVector2(), new(0, 30))
+            .IfSome(collider =>
             {
-                nearestDistance = dist;
-                nearestPoint = result.Point.ToVector2();
-                nearestNormal = result.Normal.ToVector2().Normalized();
-            }
-        }
-
-        if (nearestDistance < distance)
-        {
-            Raylib.DrawCircleV(nearestPoint, 5, Color.RED);
-            var newNormal = new Vector2(15, 15) * nearestNormal;
-            var lineEnd = nearestPoint.Plus(newNormal);
-            Raylib.DrawLineV(nearestPoint, lineEnd, Color.YELLOW);
-        }
+                Collider.CollisionDirections.TryAdd(collider, CollisionDirection.FromBelow);
+                RevertMovement(collider);
+                RepositionChildren();
+            });
+        // Raycast Top
+        Collider.CheckRayCollision(Collider.Box.Center().ToVector2(), new(0, -30))
+            .IfSome(collider =>
+            {
+                GameLogger.Log(LogLevel.INFO, $"Collided with {collider.Parent.Name}");     
+                Collider.CollisionDirections.TryAdd(collider, CollisionDirection.FromAbove);
+                RevertMovement(collider);
+                RepositionChildren();
+            });
+        
+        GameLogger.Log(LogLevel.INFO, "End move");
+        GameLogger.Log(LogLevel.INFO, "--- move");
+        // EntityManager.GetEntities<Collider2D>().ForEach(collider =>
+        // {
+        //     if (Collider.CheckCollision(collider))
+        //     {
+        //         if (CheckCollisionDirection(collider))
+        //         {
+        //             RevertMovement(collider);
+        //             RepositionChildren();
+        //         }
+        //     }
+        // });
     }
 
 
     protected bool CheckCollisionDirection(Collider2D otherCollider)
     {
-        var bottomCollision = otherCollider.Rect.Bottom() - Collider.Rect.Y;
-        var topCollision = Collider.Rect.Bottom() - otherCollider.Rect.Y;
-        var leftCollision = Collider.Rect.Right() - otherCollider.Rect.X;
-        var rightCollision = otherCollider.Rect.Right() - Collider.Rect.X;
+        var bottomCollision = otherCollider.Box.Max.Y - Collider.Box.Min.Y;
+        var topCollision = Collider.Box.Max.Y - otherCollider.Box.Min.Y;
+        var leftCollision = Collider.Box.Max.X - otherCollider.Box.Min.X;
+        var rightCollision = otherCollider.Box.Max.X - Collider.Box.Min.X;
 
         var notColliding = new List<CollisionDirection>();
         
         if (topCollision < bottomCollision && topCollision < leftCollision && topCollision < rightCollision )
         {                           
-            Collider.CollisionDirections.Add(otherCollider, CollisionDirection.FromBelow);
+            Collider.CollisionDirections.TryAdd(otherCollider, CollisionDirection.FromBelow);
             return true;
         }
         notColliding.Add(CollisionDirection.FromBelow);
         
         if (bottomCollision < topCollision && bottomCollision < leftCollision && bottomCollision < rightCollision)                        
         {
-            Collider.CollisionDirections.Add(otherCollider, CollisionDirection.FromAbove);
+            Collider.CollisionDirections.TryAdd(otherCollider, CollisionDirection.FromAbove);
             return true;
         }
         notColliding.Add(CollisionDirection.FromAbove);
         
         if (leftCollision < rightCollision && leftCollision < topCollision && leftCollision < bottomCollision)
         {
-            Collider.CollisionDirections.Add(otherCollider, CollisionDirection.FromRight);
+            Collider.CollisionDirections.TryAdd(otherCollider, CollisionDirection.FromRight);
             return true;
         }
         notColliding.Add(CollisionDirection.FromRight);
         
         if (rightCollision < leftCollision && rightCollision < topCollision && rightCollision < bottomCollision )
         {
-            Collider.CollisionDirections.Add(otherCollider, CollisionDirection.FromLeft);
+            Collider.CollisionDirections.TryAdd(otherCollider, CollisionDirection.FromLeft);
             return true;
         }
         notColliding.Add(CollisionDirection.FromLeft);
@@ -180,22 +173,27 @@ public class KinematicBody2D : Entity2D, IUpdate, IFixedUpdate
     void RevertMovement(Collider2D otherCollider)
     {
         var direction = Collider.CollisionDirections[otherCollider];
+        Vector2 newPos;
         switch (direction)
         {
             case CollisionDirection.FromLeft:
-                Position.X = otherCollider.Parent.Position.X + otherCollider.Rect.Width - Collider.Offset.X;
+                newPos.X = otherCollider.Box.Min.X + otherCollider.Box.Size().X - Collider.Offset.X;
+                Position.X = newPos.X;
                 Velocity.X = 0f;
                 break;
             case CollisionDirection.FromRight:
-                Position.X = otherCollider.Parent.Position.X - Collider.Rect.Width - Collider.Offset.X;
+                newPos.X = otherCollider.Box.Min.X - Collider.Box.Size().X - Collider.Offset.X;
+                Position.X = newPos.X;
                 Velocity.X = 0f;
                 break;
             case CollisionDirection.FromAbove:
-                Position.Y = otherCollider.Parent.Position.Y + Collider.Rect.Height - Collider.Offset.Y;
+                newPos.Y = otherCollider.Box.Min.Y + Collider.Box.Size().Y - Collider.Offset.Y;
+                Position.Y = newPos.Y;
                 Velocity.Y = 0f;
                 break;
             case CollisionDirection.FromBelow:
-                Position.Y = otherCollider.Parent.Position.Y - Collider.Rect.Height - Collider.Offset.Y;
+                newPos.Y = otherCollider.Box.Min.Y - Collider.Box.Size().Y - Collider.Offset.Y;
+                Position.Y = newPos.Y;
                 Velocity.Y = 0f;
                 break;
         }

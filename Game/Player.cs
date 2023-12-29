@@ -19,6 +19,9 @@ public class Player : KinematicBody2D
     public Player(Collider2D collider, AnimatedSprite2D animatedSprite, float speed, Vector2 position) : base(collider, position)
     {
         Speed = speed;
+        Collider = collider;
+        Collider.Parent = this;
+        AddChild(collider);
         AnimatedSprite = animatedSprite;
         AnimatedSprite.Parent = this;
         AddChild(animatedSprite);

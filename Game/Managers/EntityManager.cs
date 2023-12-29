@@ -34,17 +34,6 @@ public static class EntityManager
     }
    
 
-    public static List<Collider2D> CheckCollision(Collider2D collider1)
-    {
-        var list = new List<Collider2D>();
-        var filteredList = _entities.Filter(entity => entity is Collider2D);
-        foreach (Collider2D collider2 in filteredList)
-            if (collider1 != collider2 && Raylib.CheckCollisionRecs(collider1.Rect, collider2.Rect))
-                list.Add(collider2);
-
-        return list;
-    }
-
     public static void UpdateGameEntities()
     {
         var delta = Raylib.GetFrameTime();

@@ -6,13 +6,13 @@ namespace ProtoPlat;
 public class ColorPlatform : Entity2D, IDraw
 {
     public int DrawLayer { get; set; } = 5;
-    public Rectangle Rect;
+    public BoundingBox Box;
     public Color Color;
 
     public Collider2D? Collider;
 
     public void Draw()
     {
-        Raylib.DrawRectangleRec(Rect, Color);
+        Raylib.DrawBoundingBox(Box, Color);
     }
 }

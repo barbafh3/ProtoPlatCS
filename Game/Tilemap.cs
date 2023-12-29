@@ -1,4 +1,5 @@
 using System.Numerics;
+using ExtensionMethods;
 using LanguageExt;
 using LanguageExt.UnsafeValueAccess;
 using static LanguageExt.Prelude;
@@ -35,20 +36,20 @@ public class Tile : Entity2D
 
     public Tile(TileMap map, Vector2 coords, Rectangle atlasCoords, float spriteScale)
     {
+        Name = $"Tile({coords.X},{coords.Y})";
         Tilemap = map;
         MapCoords = coords;
         AtlasCoords = atlasCoords;
         Parent = map;
         SpriteScale = spriteScale;
-        Collider = new Collider2D(new Rectangle
+        Collider = new Collider2D(new BoundingBox
             {
-                X = Position.X,
-                Y = Position.Y,
-                Width = AtlasCoords.Width,
-                Height = AtlasCoords.Height
+                Min = Position.ToVector3(),
+                Max = Position.ToVector3() + AtlasCoords.Size().ToVector3()
             }, 
             Vector2.Zero);
         Collider.Parent = this;
+        Collider.Static = true;
     }
 
     public static Option<Tile> CreateTile(TileMap map, Vector2 coords, Vector2 atlasCoords, float spriteScale)

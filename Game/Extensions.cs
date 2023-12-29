@@ -3,6 +3,13 @@ using Raylib_cs;
 
 namespace ExtensionMethods;
 
+public static class GeneralTypeExtensions
+{
+    // Float Extensions
+    public static Vector2 Divide(this float f, Vector2 v) => new(f / v.X, f / v.Y);
+
+}
+
 public static class VectorExtensions
 {
     // Vector2 extensions
@@ -19,13 +26,10 @@ public static class VectorExtensions
 
 }
 
-public static class GeneralTypeExtensions
+public static class RectangleExtensions
 {
-    // Float Extensions
-    public static Vector2 Divide(this float f, Vector2 v) => new(f / v.X, f / v.Y);
-    
 
-    // Rectangle extensions
+// Rectangle extensions
     public static float Top(this Rectangle rect) => rect.Y;
     public static float Bottom(this Rectangle rect) => rect.Y + rect.Height;
     public static float Left(this Rectangle rect) => rect.X;
@@ -33,6 +37,10 @@ public static class GeneralTypeExtensions
     public static Vector2 Center(this Rectangle rect) => new (rect.X + (rect.Width / 2), rect.Y + (rect.Height / 2));
     public static Vector2 Position(this Rectangle rect) => new(rect.X, rect.Y);
     public static Vector2 Size(this Rectangle rect) => new(rect.Width, rect.Height);
-    public static Vector2 Max(this Rectangle rect) => rect.Position() + rect.Size();
-    public static BoundingBox ToBoundingBox(this Rectangle rect) => new(rect.Position().ToVector3(), rect.Max().ToVector3());
+}
+
+public static class BoundingBoxExtensions
+{
+    public static Vector3 Size(this BoundingBox box) => box.Max - box.Min;
+    public static Vector3 Center(this BoundingBox box) => box.Min + (box.Size() / 2);
 }
