@@ -5,15 +5,23 @@ using Tomlyn.Model;
 
 namespace ProtoPlat.Managers;
 
+public struct WindowConfigData
+{
+    public string Title;
+    public int Width;
+    public int Height;
+    public int TargetFPS;
+}
+
 public static class GameManager
 {
     private static HashMap<string, object> _config;
 
     public static bool DrawCollisionEnabled = true;
     
-    public static TomlTable WindowConfig { get; private set; }
+    public static WindowConfigData WindowConfig { get; private set; }
     
-    public static void LoadGameConfig()
+    public static Task LoadGameConfig()
     {
         var toml = "";
         try
@@ -31,8 +39,18 @@ public static class GameManager
         }
 
         _config = Toml.ToModel(toml).ToHashMap();
-        WindowConfig = (TomlTable)_config["window"];
+        var winConfig = (TomlTable)_config["window"];
+        WindowConfig = new WindowConfigData()
+        {
+            Title = (string)winConfig["Title"],
+            Width = Int32.Parse(winConfig["Width"].ToString()),
+            Height = Int32.Parse(winConfig["Height"].ToString()),
+            TargetFPS = Int32.Parse(winConfig["TargetFPS"].ToString()),
+            
+        };
         InputManager.LoadInputConfig((TomlTable)_config["input"]);
+
+        return Task.CompletedTask;
     }
 
 }

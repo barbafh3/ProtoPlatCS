@@ -9,13 +9,6 @@ using Raylib_cs;
 
 namespace ProtoPlat;
 
-public enum CollisionDirection
-{
-    FromAbove,
-    FromBelow,
-    FromLeft,
-    FromRight
-}
 
 public class Collider2D : GameEntity, IUpdate, IDraw
 {
@@ -46,12 +39,10 @@ public class Collider2D : GameEntity, IUpdate, IDraw
     {
         if (GameManager.DrawCollisionEnabled)
         {
-            VisualDebugger.QueuDebugItem(
-                DebugType.BoundingBox, 
-                new {
-                    box = Box,
-                    color = CollisionDirections.Count > 0 ? new Color(255, 0, 0, 170) : new Color(0, 0, 255, 170)
-                });
+            VisualDebugger.QueueBoundingBox(
+                 Box,
+                 CollisionDirections.Count > 0 ? new Color(255, 0, 0, 170) : new Color(0, 0, 255, 170)
+                );
         }
     }
 
@@ -60,28 +51,27 @@ public class Collider2D : GameEntity, IUpdate, IDraw
         CollisionDirections = new();
     }
 
-    public Option<Collider2D> CheckRayCollision(Vector2 origin, Vector2 direction)
+    public Option<CollisionData> CheckRayCollision(Vector2 start, Vector2 end)
     {
         if (!Enabled)
             return None;
         
-        var end = origin + direction;
-        var distance = origin.Distance(end);
+        var direction = start.Direction(end);
+        var distance = start.Distance(end);
 
         var nearestDistance = float.MaxValue;
-        Option<Vector2> nearestPoint = None;
-        Option<Vector2> nearestNormal = None;
+        Vector2 nearestPoint = Vector2.Zero;
+        Vector2 nearestNormal = Vector2.Zero;
         Option<Collider2D> nearestCollider = None;
-        // var nearestNormal = Vector2.Zero;
         EntityManager.GetEntities<Collider2D>().ForEach(collider =>
         {
             if (this != collider && collider.Static)
             {
-                var ray = new Ray(origin.ToVector3(), direction.ToVector3());
+                var ray = new Ray(start.ToVector3(), direction.ToVector3());
                 var result = Raylib.GetRayCollisionBox(ray, collider.Box);
                 if (result.Hit)
                 {
-                    var dist = result.Point.ToVector2().Distance(origin);
+                    var dist = result.Point.ToVector2().Distance(start);
                     if (dist <= distance && dist < nearestDistance) {
                         nearestDistance = dist;
                         nearestPoint = result.Point.ToVector2();
@@ -92,23 +82,60 @@ public class Collider2D : GameEntity, IUpdate, IDraw
             }
         });
 
-        if (GameManager.DrawCollisionEnabled)
-        {
-            nearestPoint.IfSome(
-                point =>
-                {
-                    VisualDebugger.QueuDebugItem(DebugType.Circle, new {position = point, radius = 3, color = Color.RED});
-                    nearestNormal.IfSome(
-                        normal =>
-                        {
-                            var endPos = point + (new Vector2(15, 15) * normal);
-                            VisualDebugger.QueuDebugItem(DebugType.LineV, new {start = point, end = endPos, color = Color.YELLOW});
-                        });
-                });
-        }
-        
-        nearestCollider.IfSome(col => col.CollisionDirections.Add(this, CollisionDirection.FromAbove));
+        return nearestCollider.Match(Some: other =>
+            new CollisionData()
+            {
+                ContactPoint = nearestPoint,
+                ContactNormal = nearestNormal,
+                Distance = nearestDistance,
+                Other = other 
+            }, 
+            None: () => Option<CollisionData>.None);
 
-        return nearestCollider;
+    }
+    
+    protected bool CheckCollisionDirection(Collider2D otherCollider)
+    {
+        var bottomCollision = otherCollider.Box.Max.Y - Box.Min.Y;
+        var topCollision = Box.Max.Y - otherCollider.Box.Min.Y;
+        var leftCollision = Box.Max.X - otherCollider.Box.Min.X;
+        var rightCollision = otherCollider.Box.Max.X - Box.Min.X;
+
+        var notColliding = new List<CollisionDirection>();
+        
+        if (topCollision < bottomCollision && topCollision < leftCollision && topCollision < rightCollision )
+        {                           
+            CollisionDirections.TryAdd(otherCollider, CollisionDirection.DownLeft);
+            return true;
+        }
+        notColliding.Add(CollisionDirection.DownLeft);
+        
+        if (bottomCollision < topCollision && bottomCollision < leftCollision && bottomCollision < rightCollision)                        
+        {
+            CollisionDirections.TryAdd(otherCollider, CollisionDirection.UpRight);
+            return true;
+        }
+        notColliding.Add(CollisionDirection.UpRight);
+        
+        if (leftCollision < rightCollision && leftCollision < topCollision && leftCollision < bottomCollision)
+        {
+            CollisionDirections.TryAdd(otherCollider, CollisionDirection.RightTop);
+            return true;
+        }
+        notColliding.Add(CollisionDirection.RightTop);
+        
+        if (rightCollision < leftCollision && rightCollision < topCollision && rightCollision < bottomCollision )
+        {
+            CollisionDirections.TryAdd(otherCollider, CollisionDirection.LeftTop);
+            return true;
+        }
+        notColliding.Add(CollisionDirection.LeftTop);
+        
+        CollisionDirections
+            .Where(kv => kv.Key == otherCollider && notColliding.Contains(kv.Value))
+            .ToList()
+            .ForEach(kv => CollisionDirections.Remove(kv.Key));
+
+        return false;
     }
 }

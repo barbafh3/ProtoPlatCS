@@ -8,16 +8,14 @@ class Program
 {
     public static void Main()
     {
-        GameManager.LoadGameConfig();
+        GameManager.LoadGameConfig().Wait();
 
         Raylib.InitWindow(
-            Int32.Parse(GameManager.WindowConfig["Width"].ToString() ?? throw new InvalidOperationException()),
-            Int32.Parse(GameManager.WindowConfig["Height"].ToString() ?? throw new InvalidOperationException()),
-            GameManager.WindowConfig["Title"].ToString()
+            GameManager.WindowConfig.Width,
+            GameManager.WindowConfig.Height,
+            GameManager.WindowConfig.Title
             );
-        Raylib.SetTargetFPS(
-            Int32.Parse(GameManager.WindowConfig["TargetFPS"].ToString() ?? throw new InvalidOperationException())
-            );
+        Raylib.SetTargetFPS(GameManager.WindowConfig.TargetFPS);
 
         var phAtlasList = new Dictionary<string, Texture2D>();
         unsafe

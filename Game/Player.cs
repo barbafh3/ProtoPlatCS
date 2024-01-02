@@ -53,25 +53,25 @@ public class Player : KinematicBody2D
         
         if (Velocity.Y > 0 
             && AnimatedSprite.Animation.Name != "Fall" 
-            && !Collider.CollisionDirections.Values.Contains(CollisionDirection.FromBelow))
+            && !Collider.CollisionDirections.Values.Contains(CollisionDirection.DownLeft))
             AnimatedSprite.ChangeAnimation(PlayerAnimations.Fall);
         else if (Velocity.Y < 0 
                  && AnimatedSprite.Animation.Name != "Jump" 
                  && AnimatedSprite.Animation.Name != "JumpApex" 
-                 && !Collider.CollisionDirections.Values.Contains(CollisionDirection.FromBelow))
+                 && !Collider.CollisionDirections.Values.Contains(CollisionDirection.DownLeft))
             AnimatedSprite.ChangeAnimation(PlayerAnimations.Jump);
         else if (Velocity.Y is >= -5 and <= 5 
                  && AnimatedSprite.Animation.Name == "Jump" 
-                 && !Collider.CollisionDirections.Values.Contains(CollisionDirection.FromBelow))
+                 && !Collider.CollisionDirections.Values.Contains(CollisionDirection.DownLeft))
             AnimatedSprite.ChangeAnimation(PlayerAnimations.JumpApex);
         else if (Velocity.X != 0 
                  && Velocity.Y == 0 
                  && AnimatedSprite.Animation.Name != "Run" 
-                 && Collider.CollisionDirections.Values.Contains(CollisionDirection.FromBelow))
+                 && Collider.CollisionDirections.Values.Contains(CollisionDirection.DownLeft))
             AnimatedSprite.ChangeAnimation(PlayerAnimations.Run);
         else if (Velocity == Vector2.Zero 
                  && AnimatedSprite.Animation.Name != "Idle" 
-                 && Collider.CollisionDirections.Values.Contains(CollisionDirection.FromBelow))
+                 && Collider.CollisionDirections.Values.Contains(CollisionDirection.DownLeft))
             AnimatedSprite.ChangeAnimation(PlayerAnimations.Idle);
     }
 }

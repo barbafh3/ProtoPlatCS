@@ -19,7 +19,10 @@ public static class VectorExtensions
     public static Vector3 ToVector3(this Vector2 v, bool yAsZ = false) => yAsZ ? new(v.X, 0, v.Y) : new(v.X, v.Y, 0);
     public static Vector2 Ceiling(this Vector2 v) => new((float)Math.Ceiling(v.Y), (float)Math.Ceiling(v.Y));
     public static Vector2 Floor(this Vector2 v) => new((float)Math.Floor(v.Y), (float)Math.Floor(v.Y));
-    public static Vector2 Plus(this Vector2 v1, Vector2 v2) => new(v1.X + v2.X, v1.Y + v2.Y);
+    public static Vector2 Minus(this Vector2 v, float f) => new(v.X - f, v.Y - f);
+    public static Vector2 Minus(this Vector2 v, int f) => new(v.X - f, v.Y - f);
+    public static Vector2 Plus(this Vector2 v, float f) => new(v.X + f, v.Y + f);
+    public static Vector2 Plus(this Vector2 v, int f) => new(v.X + f, v.Y + f);
     
     // Vector3 extensions
     public static Vector2 ToVector2(this Vector3 v, bool zAsY = false) => zAsY ? new(v.X, v.Z) : new(v.X, v.Y);

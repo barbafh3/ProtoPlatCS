@@ -2,7 +2,7 @@
 Title = "ProtoPlat"
 Width = 1280
 Height = 720
-TargetFPS = 60
+TargetFPS = 75
 
 [[input.actions]]
 Name = "MoveLeft"
